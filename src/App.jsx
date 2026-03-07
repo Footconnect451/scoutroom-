@@ -452,7 +452,7 @@ const emptyPlayer = () => ({
   pointsForts:"",pointsFaibles:"",fit:"",compatSal:"",recommande:"",
   dateContact:"",retourJoueur:"",decision:"",commentaires:"",
   statut:"Identifié",priorite:"★★",categorie:"CIBLE",
-  tmUrl:"",ssUrl:"",videoUrl:"",
+  tmUrl:"",ssUrl:"",videoUrl:"",photoUrl:"",clubLogoUrl:"",
   notation:{technique:0,physique:0,mental:0,vitesse:0,defense:0,potentiel:0},
   contacts:[],
 });
@@ -704,7 +704,20 @@ function FicheView({player:p, onEdit, onSave, onDiscard, isSaved, onContactsChan
     <div>
       {/* Header */}
       <div className="fiche-header">
-        <div className="fiche-avatar">{ROLE_E[p.role]||"⚽"}</div>
+        {/* Photo joueur : vraie photo si dispo, sinon emoji rôle */}
+        {p.photoUrl
+          ? <div style={{
+              width:80,height:80,borderRadius:14,overflow:'hidden',flexShrink:0,
+              border:'2px solid var(--border)',background:'var(--surface)',
+              boxShadow:'0 4px 16px rgba(0,0,0,.4)'
+            }}>
+              <img src={p.photoUrl} alt={p.nom}
+                style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top'}}
+                onError={e=>{e.target.style.display='none'; e.target.parentNode.innerHTML=`<span style="font-size:36px;display:flex;align-items:center;justify-content:center;height:100%">${ROLE_E[p.role]||"⚽"}</span>`;}}
+              />
+            </div>
+          : <div className="fiche-avatar">{ROLE_E[p.role]||"⚽"}</div>
+        }
         <div style={{flex:1}}>
           <div className="fiche-name">{p.nom||"Joueur"}</div>
           <div className="fiche-tags">
@@ -919,10 +932,11 @@ function EditModal({player, onSave, onClose}){
 /* ══════════════════════════════════════════════════════════
    PLAYER TABLE
 ══════════════════════════════════════════════════════════ */
-function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExport}){
+function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExport, onSign, onRefuse}){
   const [search,setSearch]=useState("");
   const [fRole,setFRole]=useState("TOUS");
   const [fStatut,setFStatut]=useState("TOUS");
+  const [confirmSign, setConfirmSign] = useState(null); // player à confirmer
 
   const filtered=players.filter(p=>{
     if(fRole!=="TOUS"&&p.role!==fRole) return false;
@@ -931,8 +945,28 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
     return true;
   });
 
+  const isCibles = players.some(p=>p.categorie==="CIBLE");
+
   return (
     <div>
+      {/* Modal de confirmation signature */}
+      {confirmSign&&(
+        <div className="overlay" onClick={e=>e.target===e.currentTarget&&setConfirmSign(null)}>
+          <div className="modal" style={{maxWidth:440,textAlign:'center'}}>
+            <div style={{fontSize:40,marginBottom:8}}>🏆</div>
+            <div style={{fontFamily:"'Bebas Neue'",fontSize:22,letterSpacing:1,marginBottom:8}}>CONFIRMER LA SIGNATURE</div>
+            <div style={{fontSize:13,color:'var(--muted)',marginBottom:20,lineHeight:1.6}}>
+              <strong style={{color:'var(--white)'}}>{confirmSign.nom}</strong> sera transféré de <span className="tag tag-purple" style={{fontSize:11}}>Cibles</span> vers <span className="tag tag-green" style={{fontSize:11}}>Effectif</span><br/>
+              Son statut passera à <strong style={{color:'var(--green)'}}>Sous contrat</strong> et il sera disponible sur le Terrain.
+            </div>
+            <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+              <button className="btn btn-ghost" onClick={()=>setConfirmSign(null)}>Annuler</button>
+              <button className="btn btn-gold" onClick={()=>{ onSign(confirmSign); setConfirmSign(null); }}>✅ Confirmer la signature</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="tbl-header">
         <div>
           <div className="tbl-title">{title}</div>
@@ -964,13 +998,30 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
             {filtered.map((p,i)=>(
               <tr key={p.id} className={rowClass} style={{cursor:"pointer"}} onClick={()=>onView(p)}>
                 <td style={{color:"var(--muted)"}}>{i+1}</td>
-                <td><strong>{p.nom}</strong></td>
+                <td>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    {/* Mini photo joueur */}
+                    {p.photoUrl
+                      ? <img src={p.photoUrl} alt={p.nom}
+                          style={{width:30,height:30,borderRadius:8,objectFit:'cover',objectPosition:'top',border:'1px solid var(--border)',flexShrink:0}}
+                          onError={e=>e.target.style.display='none'}
+                        />
+                      : <div style={{width:30,height:30,borderRadius:8,background:'var(--surface-2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>{ROLE_E[p.role]||"⚽"}</div>
+                    }
+                    <strong>{p.nom}</strong>
+                  </div>
+                </td>
                 <td>{p.nationalite}</td>
                 <td>{p.age||"—"}</td>
                 <td>{p.pied||"—"}</td>
                 <td>{p.poste}</td>
                 <td><RoleTag role={p.role}/></td>
-                <td>{p.club}</td>
+                <td>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    {p.clubLogoUrl&&<img src={p.clubLogoUrl} alt="" style={{width:18,height:18,objectFit:'contain',flexShrink:0}} onError={e=>e.target.style.display='none'}/>}
+                    {p.club}
+                  </div>
+                </td>
                 <td style={{fontSize:11,color:"var(--muted)"}}>{p.ligue}</td>
                 <td style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11}}>{p.valeur?parseInt(p.valeur).toLocaleString("fr")+"€":"—"}</td>
                 <td><CtCell val={p.finContrat}/></td>
@@ -983,6 +1034,23 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
                 <td style={{fontSize:11,color:"var(--muted)"}}>{p.agent||"—"}</td>
                 <td onClick={e=>e.stopPropagation()}>
                   <div style={{display:"flex",gap:4}}>
+                    {/* Boutons signer / refuser uniquement sur les cibles non-terminées */}
+                    {isCibles && p.statut!=="Signé" && p.statut!=="Refusé" && onSign && (
+                      <button
+                        className="btn btn-sm"
+                        style={{background:'rgba(34,197,94,.12)',color:'var(--green)',border:'1px solid rgba(34,197,94,.25)',padding:'4px 8px',fontSize:11}}
+                        title="Signer ce joueur → transfère en Effectif"
+                        onClick={()=>setConfirmSign(p)}
+                      >✅</button>
+                    )}
+                    {isCibles && p.statut!=="Signé" && p.statut!=="Refusé" && onRefuse && (
+                      <button
+                        className="btn btn-sm"
+                        style={{background:'rgba(239,68,68,.1)',color:'var(--red)',border:'1px solid rgba(239,68,68,.2)',padding:'4px 8px',fontSize:11}}
+                        title="Marquer comme refusé"
+                        onClick={()=>onRefuse(p)}
+                      >❌</button>
+                    )}
                     <button className="btn btn-ghost btn-sm" onClick={()=>onEdit(p)}>✏️</button>
                     <button className="btn btn-red btn-sm" onClick={()=>onDelete(p.id)}>✕</button>
                   </div>
@@ -2008,6 +2076,7 @@ export default function App(){
   const [editP,setEditP]=useState(null);
   const [viewP,setViewP]=useState(null);
   const [newClubCode, setNewClubCode] = useState(null);
+  const [signedFlash, setSignedFlash] = useState(null);
 
   // Check existing session on mount
   useEffect(()=>{
@@ -2039,6 +2108,7 @@ export default function App(){
       const eff = (effData||[]).map(p => ({
         ...p, categorie:'EFFECTIF', finContrat: p.fin_contrat, clubActuel: p.club_actuel,
         club: p.club_actuel, tmUrl: p.tm_url, videoUrl: p.video_url||'',
+        photoUrl: p.photo_url||'', clubLogoUrl: p.club_logo_url||'',
         pointsForts: p.points_forts, pointsFaibles: p.points_faibles,
         noteSS: p.note_ss, passeportUE: p.passeport_ue, espCatalan: p.esp_catalan,
         debutContrat: p.debut_contrat,
@@ -2048,6 +2118,7 @@ export default function App(){
       const cib = (cibData||[]).map(p => ({
         ...p, categorie:'CIBLE', finContrat: p.fin_contrat, clubActuel: p.club_actuel,
         club: p.club_actuel, tmUrl: p.tm_url, videoUrl: p.video_url||'',
+        photoUrl: p.photo_url||'', clubLogoUrl: p.club_logo_url||'',
         pointsForts: p.points_forts, pointsFaibles: p.points_faibles,
         noteSS: p.note_ss, passeportUE: p.passeport_ue, espCatalan: p.esp_catalan,
         debutContrat: p.debut_contrat,
@@ -2076,6 +2147,8 @@ export default function App(){
     matchs: p.matchs||'', buts: p.buts||'', passes: p.passes||'',
     priorite: p.priorite||'★★', categorie: p.categorie||'CIBLE',
     video_url: p.videoUrl||p.video_url||'',
+    photo_url: p.photoUrl||p.photo_url||'',
+    club_logo_url: p.clubLogoUrl||p.club_logo_url||'',
     notation: p.notation ? JSON.stringify(p.notation) : null,
     contacts: p.contacts ? JSON.stringify(p.contacts) : null,
   });
@@ -2146,6 +2219,35 @@ export default function App(){
     if(viewP?.id===id) setViewP(null);
   };
 
+  // Signer une cible → la transfère en EFFECTIF (supprime targets, insère players)
+  const handleSign=async(cible)=>{
+    if(!authData?.profile?.club_id) return;
+    const clubId = authData.profile.club_id;
+    const signed = {...cible, categorie:'EFFECTIF', statut:'Sous contrat'};
+    const row = toDbRow(signed, clubId);
+    // Insérer dans players
+    const { data, error } = await supabase.from('players').insert(row).select().single();
+    if(error){ console.error(error); return; }
+    // Supprimer de targets
+    await supabase.from('targets').delete().eq('id', cible.id);
+    // Mettre à jour le state local
+    const mapped = {...signed, id: data.id};
+    setPlayers(prev => [...prev.filter(x=>x.id!==cible.id), mapped]);
+    if(viewP?.id===cible.id) setViewP(mapped);
+    // Notification flash
+    setSignedFlash(cible.nom);
+    setTimeout(()=>setSignedFlash(null), 3000);
+  };
+
+  // Refuser une cible → change statut en "Refusé" dans targets
+  const handleRefuse=async(cible)=>{
+    const updated = {...cible, statut:'Refusé'};
+    const row = toDbRow(updated, authData.profile.club_id);
+    await supabase.from('targets').update(row).eq('id', cible.id);
+    setPlayers(prev => prev.map(p=>p.id===cible.id?updated:p));
+    if(viewP?.id===cible.id) setViewP(updated);
+  };
+
   const handleEditSave=async(updated)=>{
     const table = updated.categorie === 'EFFECTIF' ? 'players' : 'targets';
     const row = toDbRow(updated, authData.profile.club_id);
@@ -2198,6 +2300,17 @@ export default function App(){
         <div style={{background:'rgba(34,197,94,.12)',border:'1px solid rgba(34,197,94,.25)',borderRadius:10,padding:'12px 20px',margin:'16px',display:'flex',alignItems:'center',gap:12,justifyContent:'space-between'}}>
           <div>🎉 <strong>Club créé !</strong> Ton code d'invitation : <span style={{fontFamily:'monospace',fontWeight:900,fontSize:16,color:'var(--green)',letterSpacing:2}}>{newClubCode}</span> — partage-le à tes membres</div>
           <button className="btn btn-ghost btn-sm" onClick={()=>setNewClubCode(null)}>✕</button>
+        </div>
+      )}
+
+      {/* Toast : joueur signé */}
+      {signedFlash&&(
+        <div style={{position:'fixed',bottom:24,right:24,zIndex:999,background:'linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.08))',border:'1px solid rgba(34,197,94,.35)',borderRadius:12,padding:'14px 20px',display:'flex',alignItems:'center',gap:12,boxShadow:'0 8px 32px rgba(0,0,0,.4)',animation:'fadeUp .25s ease'}}>
+          <span style={{fontSize:22}}>✅</span>
+          <div>
+            <div style={{fontWeight:700,color:'var(--green)',fontSize:13}}>{signedFlash} — SIGNÉ !</div>
+            <div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>Transféré dans l'Effectif · disponible sur le Terrain</div>
+          </div>
         </div>
       )}
       <div className="app">
@@ -2360,7 +2473,8 @@ export default function App(){
           {tab==="cibles"&&(
             <PlayerTable players={cibles} title="🎯 CIBLES MERCATO ÉTÉ 2026" rowClass="tbl-row-cib"
               onView={p=>setViewP(p)} onEdit={p=>setEditP(p)} onDelete={handleDelete}
-              onExport={()=>exportCSV(cibles)}/>
+              onExport={()=>exportCSV(cibles)}
+              onSign={handleSign} onRefuse={handleRefuse}/>
           )}
 
           {/* ─── ANALYSER ─── */}
@@ -2431,7 +2545,31 @@ export default function App(){
             <div className="modal modal-lg">
               <FicheView player={viewP} isSaved={true} onEdit={()=>setEditP(viewP)} onSave={()=>{}} onDiscard={()=>setViewP(null)}
                 onContactsChange={(c)=>handleContactsChange(viewP,c)}/>
-              <div className="modal-actions no-print"><button className="btn btn-ghost" onClick={()=>setViewP(null)}>Fermer</button></div>
+              <div className="modal-actions no-print">
+                {/* Actions signer / refuser pour les cibles */}
+                {viewP.categorie==="CIBLE" && viewP.statut!=="Signé" && viewP.statut!=="Refusé" && (
+                  <>
+                    <button
+                      className="btn btn-sm"
+                      style={{background:'rgba(34,197,94,.12)',color:'var(--green)',border:'1px solid rgba(34,197,94,.3)',fontWeight:700}}
+                      onClick={()=>{ handleSign(viewP); setViewP(null); }}
+                    >✅ Signer → Effectif</button>
+                    <button
+                      className="btn btn-sm"
+                      style={{background:'rgba(239,68,68,.1)',color:'var(--red)',border:'1px solid rgba(239,68,68,.2)'}}
+                      onClick={()=>handleRefuse(viewP)}
+                    >❌ Refusé</button>
+                  </>
+                )}
+                {viewP.categorie==="CIBLE" && viewP.statut==="Signé" && (
+                  <span style={{fontSize:12,color:'var(--green)',fontWeight:600}}>✅ Joueur signé · dans l'Effectif</span>
+                )}
+                {viewP.categorie==="CIBLE" && viewP.statut==="Refusé" && (
+                  <span style={{fontSize:12,color:'var(--red)',fontWeight:600}}>❌ Dossier refusé</span>
+                )}
+                <div style={{flex:1}}/>
+                <button className="btn btn-ghost" onClick={()=>setViewP(null)}>Fermer</button>
+              </div>
             </div>
           </div>
         )}
