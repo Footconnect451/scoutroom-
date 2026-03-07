@@ -1034,13 +1034,12 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
                 <td style={{fontSize:11,color:"var(--muted)"}}>{p.agent||"—"}</td>
                 <td onClick={e=>e.stopPropagation()}>
                   <div style={{display:"flex",gap:4}}>
-                    {/* Boutons signer / refuser uniquement sur les cibles non-terminées */}
                     {isCibles && p.statut!=="Signé" && p.statut!=="Refusé" && onSign && (
                       <button
                         className="btn btn-sm"
                         style={{background:'rgba(34,197,94,.12)',color:'var(--green)',border:'1px solid rgba(34,197,94,.25)',padding:'4px 8px',fontSize:11}}
                         title="Signer ce joueur → transfère en Effectif"
-                        onClick={()=>setConfirmSign(p)}
+                        onClick={e=>{e.stopPropagation();setConfirmSign(p);}}
                       >✅</button>
                     )}
                     {isCibles && p.statut!=="Signé" && p.statut!=="Refusé" && onRefuse && (
@@ -1048,11 +1047,11 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
                         className="btn btn-sm"
                         style={{background:'rgba(239,68,68,.1)',color:'var(--red)',border:'1px solid rgba(239,68,68,.2)',padding:'4px 8px',fontSize:11}}
                         title="Marquer comme refusé"
-                        onClick={()=>onRefuse(p)}
+                        onClick={e=>{e.stopPropagation();onRefuse(p);}}
                       >❌</button>
                     )}
-                    <button className="btn btn-ghost btn-sm" onClick={()=>onEdit(p)}>✏️</button>
-                    <button className="btn btn-red btn-sm" onClick={()=>onDelete(p.id)}>✕</button>
+                    <button className="btn btn-ghost btn-sm" onClick={e=>{e.stopPropagation();onEdit(p);}}>✏️</button>
+                    <button className="btn btn-red btn-sm" onClick={e=>{e.stopPropagation();onDelete(p.id);}}>✕</button>
                   </div>
                 </td>
               </tr>
