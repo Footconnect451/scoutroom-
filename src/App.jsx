@@ -1203,6 +1203,7 @@ export default function App(){
   const [tab,setTab]=useState(getHashTab);
   const [players,setPlayers]=useState([]);
   const [dbLoading, setDbLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [url,setUrl]=useState("");
   const [loading,setLoading]=useState(false);
   const [loadStep,setLoadStep]=useState("");
@@ -1221,6 +1222,7 @@ export default function App(){
           setAuthData({ user: session.user, profile, club: profile.clubs });
         }
       }
+      setAuthLoading(false);
     });
   }, []);
 
@@ -1361,6 +1363,7 @@ export default function App(){
     {id:"profil",label:"⚙️ Mon Club"},
   ];
 
+  if(authLoading) return <><style dangerouslySetInnerHTML={{__html:css}}/><div style={{position:'fixed',inset:0,background:'var(--bg)',display:'flex',alignItems:'center',justifyContent:'center'}}><div className="spinner"/></div></>;
   if(!authData) return <><style dangerouslySetInnerHTML={{__html:css}}/><AuthPage onLogin={handleLogin}/></>;
 
   const clubName = authData.club?.name || 'Mon Club';
