@@ -870,6 +870,102 @@ function GuidePage(){
 }
 
 /* ══════════════════════════════════════════════════════════
+   PROFIL PAGE (Mon Club)
+══════════════════════════════════════════════════════════ */
+function ProfilPage({ authData, onUpdated }) {
+  const club = authData?.club || {};
+  const user = authData?.profile || {};
+  const [clubName, setClubName] = useState(club.name || '');
+  const [logoUrl, setLogoUrl] = useState(club.logo_url || '');
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [err, setErr] = useState('');
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setErr('Fichier image uniquement (PNG, JPG, WebP)'); return; }
+    setUploading(true); setErr(''); setMsg('');
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${club.id}/logo.${ext}`;
+      const { error: upErr } = await supabase.storage.from('club-logos').upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from('club-logos').getPublicUrl(path);
+      const url = publicUrl + '?t=' + Date.now();
+      setLogoUrl(url);
+      await supabase.from('clubs').update({ logo_url: url }).eq('id', club.id);
+      setMsg('✅ Logo mis à jour !');
+      onUpdated({ ...authData, club: { ...club, logo_url: url } });
+    } catch(e) { setErr(e.message); }
+    finally { setUploading(false); }
+  };
+
+  const handleSaveClub = async () => {
+    setSaving(true); setErr(''); setMsg('');
+    try {
+      await supabase.from('clubs').update({ name: clubName.trim() }).eq('id', club.id);
+      setMsg('✅ Nom du club mis à jour !');
+      onUpdated({ ...authData, club: { ...club, name: clubName.trim() } });
+    } catch(e) { setErr(e.message); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div style={{ maxWidth: 600 }}>
+      <div className="page-title">⚙️ MON CLUB</div>
+      <div className="page-sub">Paramètres du club · {club.code && <span style={{fontFamily:'monospace',color:'var(--gold)',letterSpacing:2}}>{club.code}</span>}</div>
+
+      {msg && <div className="auth-ok" style={{marginBottom:14}}>✅ {msg.replace('✅ ','')}</div>}
+      {err && <div className="auth-err" style={{marginBottom:14}}>⚠️ {err}</div>}
+
+      {/* Logo */}
+      <div className="card" style={{marginBottom:16}}>
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:'uppercase',color:'var(--muted)',marginBottom:16}}>🖼️ LOGO DU CLUB</div>
+        <div style={{display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
+          <div style={{width:90,height:90,borderRadius:12,background:'var(--bg)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',flexShrink:0}}>
+            {logoUrl
+              ? <img src={logoUrl} alt="logo" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+              : <span style={{fontSize:32}}>🏟️</span>
+            }
+          </div>
+          <div>
+            <label style={{display:'inline-block',padding:'8px 16px',background:'var(--gold)',color:'var(--bg)',borderRadius:8,fontWeight:700,fontSize:12,cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>
+              {uploading ? '⏳ Upload...' : '📁 Choisir un logo'}
+              <input type="file" accept="image/*" style={{display:'none'}} onChange={handleLogoUpload} disabled={uploading}/>
+            </label>
+            <div style={{fontSize:11,color:'var(--muted)',marginTop:6}}>PNG, JPG ou WebP · Recommandé : 200×200px</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Club name */}
+      <div className="card" style={{marginBottom:16}}>
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:'uppercase',color:'var(--muted)',marginBottom:14}}>🏟️ NOM DU CLUB</div>
+        <div style={{display:'flex',gap:10}}>
+          <input className="form-input" value={clubName} onChange={e=>setClubName(e.target.value)} placeholder="Nom du club..." style={{flex:1}}/>
+          <button className="btn btn-gold" onClick={handleSaveClub} disabled={saving||!clubName.trim()}>{saving?'⏳ Sauvegarde...':'💾 Sauvegarder'}</button>
+        </div>
+      </div>
+
+      {/* Infos */}
+      <div className="card">
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:'uppercase',color:'var(--muted)',marginBottom:14}}>👤 MON COMPTE</div>
+        <div className="fiche-grid-2">
+          {[['Nom',user.nom||'—'],['Rôle',user.role||'membre'],['Plan',club.plan||'free'],['Code club',club.code||'—']].map(([l,v])=>(
+            <div className="fiche-field" key={l}>
+              <div className="fiche-label">{l}</div>
+              <div className="fiche-val" style={l==='Code club'?{fontFamily:'monospace',color:'var(--gold)',letterSpacing:2}:{}}>{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
    MAIN APP
 ══════════════════════════════════════════════════════════ */
 
@@ -1262,17 +1358,18 @@ export default function App(){
     {id:"analyser",label:"➕ Analyser joueur"},
     {id:"budget",label:"💶 Budget"},
     {id:"guide",label:"📖 Guide DS"},
+    {id:"profil",label:"⚙️ Mon Club"},
   ];
 
   if(!authData) return <><style dangerouslySetInnerHTML={{__html:css}}/><AuthPage onLogin={handleLogin}/></>;
 
   const clubName = authData.club?.name || 'Mon Club';
+  const clubLogo = authData.club?.logo_url || null;
   const user = authData.profile;
 
-
-
-
-
+  const handleAuthUpdated = (newData) => {
+    setAuthData(newData);
+  };
   return (
     <>
       <style dangerouslySetInnerHTML={{__html:css}}/>
@@ -1287,7 +1384,12 @@ export default function App(){
         {/* TOPBAR */}
         <div className="topbar">
           <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
-            <div style={{width:"34px",height:"34px",borderRadius:"8px",background:"var(--gold)",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:"13px",color:"#060d1a",fontFamily:"Arial Black, sans-serif"}}>SR</div>
+            <div style={{width:"38px",height:"38px",borderRadius:"8px",background:"var(--card)",border:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0}}>
+              {clubLogo
+                ? <img src={clubLogo} alt="logo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                : <span style={{fontWeight:900,fontSize:"13px",color:"var(--gold)",fontFamily:"Arial Black, sans-serif"}}>SR</span>
+              }
+            </div>
             <div>
               <div className="logo">SCOUT<span>ROOM</span></div>
               <div style={{fontSize:"10px",color:"var(--muted)",letterSpacing:"1px",fontWeight:500,marginTop:"-2px"}}>{clubName.toUpperCase()} · SCOUTROOM</div>
@@ -1429,6 +1531,9 @@ export default function App(){
 
           {/* ─── GUIDE ─── */}
           {tab==="guide"&&<GuidePage/>}
+
+          {/* ─── MON CLUB ─── */}
+          {tab==="profil"&&<ProfilPage authData={authData} onUpdated={handleAuthUpdated}/>}
 
           {/* ─── ADMIN ─── */}
           {tab==="admin"&&authData?.user?.email===ADMIN_EMAIL&&<AdminPage onLogout={handleLogout}/>}
