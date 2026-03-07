@@ -1086,7 +1086,7 @@ function AuthPage({onLogin}) {
         {mode==='login' && (
           <div style={{textAlign:'center',marginTop:12}}>
             <button style={{background:'none',border:'none',color:'var(--muted)',fontSize:11,cursor:'pointer',textDecoration:'underline'}} onClick={async()=>{
-              if(!email.trim()){setErr('Entre ton email d'abord.');return;}
+              if(!email.trim()){setErr("Entre ton email d'abord.");return;}
               await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:'https://scoutroom.vercel.app/?reset=true'});
               setErr('');alert('📧 Email de réinitialisation envoyé !');
             }}>Mot de passe oublié ?</button>
@@ -1144,12 +1144,14 @@ export default function App(){
       ]);
       const eff = (effData||[]).map(p => ({
         ...p, categorie:'EFFECTIF', finContrat: p.fin_contrat, clubActuel: p.club_actuel,
+        club: p.club_actuel, tmUrl: p.tm_url,
         pointsForts: p.points_forts, pointsFaibles: p.points_faibles,
         noteSS: p.note_ss, passeportUE: p.passeport_ue, espCatalan: p.esp_catalan,
         debutContrat: p.debut_contrat
       }));
       const cib = (cibData||[]).map(p => ({
         ...p, categorie:'CIBLE', finContrat: p.fin_contrat, clubActuel: p.club_actuel,
+        club: p.club_actuel, tmUrl: p.tm_url,
         pointsForts: p.points_forts, pointsFaibles: p.points_faibles,
         noteSS: p.note_ss, passeportUE: p.passeport_ue, espCatalan: p.esp_catalan,
         debutContrat: p.debut_contrat
@@ -1162,10 +1164,10 @@ export default function App(){
   const toDbRow = (p, clubId) => ({
     club_id: clubId,
     nom: p.nom||'', poste: p.poste||'', role: p.role||'',
-    club_actuel: p.clubActuel||p.club_actuel||'', ligue: p.ligue||'',
+    club_actuel: p.clubActuel||p.club_actuel||p.club||'', ligue: p.ligue||'',
     nationalite: p.nationalite||'', age: p.age||'', taille: p.taille||'',
     pied: p.pied||'', fin_contrat: p.finContrat||p.fin_contrat||'',
-    valeur: p.valeur||'', agent: p.agent||'', tm_url: p.tm_url||'',
+    valeur: p.valeur||'', agent: p.agent||'', tm_url: p.tmUrl||p.tm_url||'',
     statut: p.statut||'', commentaires: p.commentaires||'',
     points_forts: p.pointsForts||p.points_forts||'',
     points_faibles: p.pointsFaibles||p.points_faibles||'',
