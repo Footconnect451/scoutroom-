@@ -333,6 +333,21 @@ tr:hover td{background:rgba(255,255,255,.02)}
   .fiche-grid{grid-template-columns:1fr}
   .auth-tabs{flex-direction:column}
 }
+
+/* ── ADMIN ── */
+.admin-bg{min-height:100vh;background:var(--bg);padding:24px}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.admin-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold)}
+.admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.admin-kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.admin-kpi-n{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold)}
+.admin-kpi-l{font-size:11px;color:var(--muted);margin-top:2px}
+.admin-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.admin-section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.club-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.club-row:last-child{border-bottom:none}
+.club-code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(245,166,35,.1);color:var(--gold);padding:2px 8px;border-radius:4px;letter-spacing:1px}
+
 `;
 
 /* ══════════════════════════════════════════════════════════
@@ -858,21 +873,6 @@ function GuidePage(){
    MAIN APP
 ══════════════════════════════════════════════════════════ */
 
-
-
-/* ── ADMIN ── */
-.admin-bg{min-height:100vh;background:var(--bg);padding:24px}
-.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
-.admin-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--gold)}
-.admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
-.admin-kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
-.admin-kpi-n{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold)}
-.admin-kpi-l{font-size:11px;color:var(--muted);margin-top:2px}
-.admin-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
-.admin-section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
-.club-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
-.club-row:last-child{border-bottom:none}
-.club-code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(245,166,35,.1);color:var(--gold);padding:2px 8px;border-radius:4px;letter-spacing:1px}
 
 const ADMIN_EMAIL = 'fcdeportivolamassana@gmail.com';
 
