@@ -996,7 +996,7 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
           <tbody>
             {filtered.length===0&&<tr><td colSpan={19} style={{textAlign:"center",padding:"32px",color:"var(--muted)"}}>Aucun joueur trouvé</td></tr>}
             {filtered.map((p,i)=>(
-              <tr key={p.id} className={rowClass} style={{cursor:"pointer"}} onClick={()=>onView(p)}>
+              <tr key={p.id} className={rowClass} style={{cursor:"pointer"}} onClick={e=>{if(e.target.closest('button')||e.target.tagName==='BUTTON')return;onView(p);}}>
                 <td style={{color:"var(--muted)"}}>{i+1}</td>
                 <td>
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -1032,14 +1032,14 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
                 <td onClick={e=>e.stopPropagation()}><StatusTag statut={p.statut}/></td>
                 <td><PrioTag prio={p.priorite}/></td>
                 <td style={{fontSize:11,color:"var(--muted)"}}>{p.agent||"—"}</td>
-                <td onClick={e=>e.stopPropagation()}>
+                <td>
                   <div style={{display:"flex",gap:4}}>
                     {isCibles && p.statut!=="Signé" && p.statut!=="Refusé" && onSign && (
                       <button
                         className="btn btn-sm"
                         style={{background:'rgba(34,197,94,.12)',color:'var(--green)',border:'1px solid rgba(34,197,94,.25)',padding:'4px 8px',fontSize:11}}
                         title="Signer ce joueur → transfère en Effectif"
-                        onClick={e=>{e.stopPropagation();setConfirmSign(p);}}
+                        onClick={()=>setConfirmSign(p)}
                       >✅</button>
                     )}
                     {isCibles && p.statut!=="Signé" && p.statut!=="Refusé" && onRefuse && (
@@ -1047,11 +1047,11 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
                         className="btn btn-sm"
                         style={{background:'rgba(239,68,68,.1)',color:'var(--red)',border:'1px solid rgba(239,68,68,.2)',padding:'4px 8px',fontSize:11}}
                         title="Marquer comme refusé"
-                        onClick={e=>{e.stopPropagation();onRefuse(p);}}
+                        onClick={()=>onRefuse(p)}
                       >❌</button>
                     )}
-                    <button className="btn btn-ghost btn-sm" onClick={e=>{e.stopPropagation();onEdit(p);}}>✏️</button>
-                    <button className="btn btn-red btn-sm" onClick={e=>{e.stopPropagation();onDelete(p.id);}}>✕</button>
+                    <button className="btn btn-ghost btn-sm" onClick={()=>onEdit(p)}>✏️</button>
+                    <button className="btn btn-red btn-sm" onClick={()=>onDelete(p.id)}>✕</button>
                   </div>
                 </td>
               </tr>
