@@ -1820,10 +1820,12 @@ export default function App(){
     setDbLoading(true);
     try{
       const clubId=authData.profile.club_id;
-      const [{data:effData},{data:cibData}]=await Promise.all([
-        supabase.from('players').select('*').eq('club_id',clubId).order('created_at'),
-        supabase.from('targets').select('*').eq('club_id',clubId).order('created_at'),
+      const [{data:effData,error:effErr},{data:cibData,error:cibErr}]=await Promise.all([
+        supabase.from('players').select('*').eq('club_id',clubId),
+        supabase.from('targets').select('*').eq('club_id',clubId),
       ]);
+      if(effErr) console.error('Load players error:', effErr.code, effErr.message);
+      if(cibErr) console.error('Load targets error:', cibErr.code, cibErr.message);
       setPlayers([
         ...(effData||[]).map(p => mapDbToPlayer(p, 'EFFECTIF')),
         ...(cibData||[]).map(p => mapDbToPlayer(p, 'CIBLE')),
