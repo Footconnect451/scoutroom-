@@ -1674,29 +1674,33 @@ export default function App(){
       debut_contrat:p.debutContrat||p.debut_contrat||'',
       matchs:p.matchs||'',buts:p.buts||'',passes:p.passes||'',
       priorite:p.priorite||'★★',
-      video_url:p.videoUrl||p.video_url||'',
-      notation:p.notation?JSON.stringify(p.notation):null,
-      contacts:p.contacts?JSON.stringify(p.contacts):null,
     };
+    // Colonnes ajoutees par migrations — absentes sur anciens schemas
     if(!skipNewCols){
+      base.video_url=p.videoUrl||p.video_url||'';
+      base.notation=p.notation?JSON.stringify(p.notation):null;
+      base.contacts=p.contacts?JSON.stringify(p.contacts):null;
       base.photo_url=p.photoUrl||p.photo_url||'';
       base.club_logo_url=p.clubLogoUrl||p.club_logo_url||'';
     }
     return base;
   };
 
-  // Insert robuste — retry sans colonnes nouvelles si erreur 42703
+  // Insert robuste — retry avec schema minimal si erreur colonne
   const safeInsert=async(table,p,clubId)=>{
+    // Tentative 1 : toutes les colonnes
     let row=toDbRow(p,clubId,false);
     let{data,error}=await supabase.from(table).insert(row).select().single();
-    if(error){
-      console.error('Insert error:',error.code, error.message);
-      if(error.code==='42703'||error.message?.includes('column')){
-        row=toDbRow(p,clubId,true);
-        const res=await supabase.from(table).insert(row).select().single();
-        data=res.data;error=res.error;
-        if(res.error) console.error('Retry error:',res.error);
-      }
+    if(!error) return{data,error};
+    console.error('Insert error:',error.code, error.message);
+    // Tentative 2 : sans colonnes optionnelles (42703 = colonne inconnue)
+    const isColErr=error.code==='42703'||error.message?.includes('column')||error.message?.includes('does not exist');
+    if(isColErr){
+      row=toDbRow(p,clubId,true);
+      const res=await supabase.from(table).insert(row).select().single();
+      if(!res.error) return{data:res.data,error:null};
+      console.error('Retry error:',res.error.code,res.error.message);
+      return{data:null,error:res.error};
     }
     return{data,error};
   };
@@ -1742,9 +1746,10 @@ export default function App(){
       setSaveError(`❌ Erreur: ${error.message} (code: ${error.code})`);
       return;
     }
-    if(data){setPlayers(prev=>[...prev,{...preview,id:data.id}]);}
+    const saved={...preview,id:data?.id||preview.id,categorie:'CIBLE'};
+    setPlayers(prev=>[...prev,saved]);
     setPreview(null);setUrl('');setSaveError("");
-    setTab(preview.categorie==="EFFECTIF"?"effectif":"cibles");
+    setTab('cibles');
   };
 
   const handleDelete=async(id)=>{
