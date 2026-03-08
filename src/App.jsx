@@ -905,7 +905,7 @@ function EditModal({player, onSave, onClose}){
 /* ══════════════════════════════════════════════════════════
    PLAYER TABLE
 ══════════════════════════════════════════════════════════ */
-function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExport, onSign, onRefuse}){
+function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExport, onSign, onRefuse, onAdd}){
   const [search,setSearch]=useState("");
   const [fRole,setFRole]=useState("TOUS");
   const [fStatut,setFStatut]=useState("TOUS");
@@ -943,13 +943,16 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
       <div className="tbl-header">
         <div>
           <div className="tbl-title">{title}</div>
-          <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{filtered.length} joueur{filtered.length>1?"s":""} • Sources : Transfermarkt + SofaScore</div>
+          <div style={{fontSize:12,color:"var(--muted)",marginTop:2}}>{filtered.length} joueur{filtered.length>1?"s":""}</div>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={onExport}>📥 Exporter CSV</button>
+        <div style={{display:"flex",gap:8}}>
+          {onAdd&&<button className="btn btn-gold btn-sm" onClick={onAdd}>➕ Ajouter manuellement</button>}
+          <button className="btn btn-ghost btn-sm" onClick={onExport}>📥 Exporter CSV</button>
+        </div>
       </div>
 
       <div className="filter-bar">
-        {["TOUS","GK","DEF","MIL","ATT"].map(r=><button key={r} className={`filter-btn ${fRole===r?"active":""}`} onClick={()=>setFRole(r)}>{r}</button>)}
+        {["TOUS","GK","DEF","MIL","ATT","STAFF"].map(r=><button key={r} className={`filter-btn ${fRole===r?"active":""}`} onClick={()=>setFRole(r)}>{r}</button>)}
         <div style={{width:1,background:"var(--border)",margin:"0 2px"}}/>
         {["TOUS",...STATUTS.slice(0,5)].map(s=><button key={s} className={`filter-btn ${fStatut===s?"active":""}`} onClick={()=>setFStatut(s)} style={{fontSize:10}}>{s}</button>)}
         <div style={{flex:1}}/>
@@ -1034,65 +1037,92 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
 /* ══════════════════════════════════════════════════════════
    BUDGET PAGE
 ══════════════════════════════════════════════════════════ */
-function BudgetPage({cibles}){
-  const POSTES_BUDGET=[
-    {poste:"Gardien #1",role:"GK",duree:"2 ans"},
-    {poste:"Défenseur Central",role:"DEF",duree:"2 ans"},
-    {poste:"Latéral Droit",role:"DEF",duree:"1 an"},
-    {poste:"Milieu Box-to-Box",role:"MIL",duree:"2 ans"},
-    {poste:"Ailier Gauche",role:"ATT",duree:"2 ans"},
-    {poste:"Avant-Centre",role:"ATT",duree:"1 an"},
-  ];
-  const [rows,setRows]=useState(POSTES_BUDGET.map((p,i)=>({...p,id:i,joueur:"",salaire:"",indemnite:""})));
+function BudgetPage({cibles, clubName}){
+  const [rows,setRows]=useState([
+    {id:0,poste:"Gardien #1",role:"GK",duree:"2 ans",joueur:"",salaire:"",indemnite:""},
+    {id:1,poste:"Défenseur Central",role:"DEF",duree:"2 ans",joueur:"",salaire:"",indemnite:""},
+    {id:2,poste:"Latéral Droit",role:"DEF",duree:"1 an",joueur:"",salaire:"",indemnite:""},
+    {id:3,poste:"Milieu Box-to-Box",role:"MIL",duree:"2 ans",joueur:"",salaire:"",indemnite:""},
+    {id:4,poste:"Ailier Gauche",role:"ATT",duree:"2 ans",joueur:"",salaire:"",indemnite:""},
+    {id:5,poste:"Avant-Centre",role:"ATT",duree:"1 an",joueur:"",salaire:"",indemnite:""},
+  ]);
+  const [budgetMax, setBudgetMax] = useState("");
+  const [nextId, setNextId] = useState(6);
   const upd=(id,k,v)=>setRows(r=>r.map(x=>x.id===id?{...x,[k]:v}:x));
+  const addRow=()=>{setRows(r=>[...r,{id:nextId,poste:"",role:"ATT",duree:"1 an",joueur:"",salaire:"",indemnite:""}]);setNextId(n=>n+1);};
+  const delRow=(id)=>setRows(r=>r.filter(x=>x.id!==id));
   const total=rows.reduce((s,r)=>{
     const sal=parseInt(r.salaire)||0;
     const ind=parseInt(r.indemnite)||0;
-    const mois=r.duree==="2 ans"?24:12;
+    const mois=r.duree==="3 ans"?36:r.duree==="2 ans"?24:12;
     return s+sal*mois+ind;
   },0);
+  const masseSal=rows.reduce((s,r)=>(s+(parseInt(r.salaire)||0)),0);
+  const budgetNum=parseInt(budgetMax)||0;
+  const pctUsed=budgetNum>0?Math.round(total/budgetNum*100):0;
+  const overBudget=budgetNum>0&&total>budgetNum;
   return (
     <div>
-      <div className="page-title">💶 BUDGET MERCATO</div>
-      <div className="page-sub">Été 2026 — Andorre D2 • Salaires estimés + indemnités</div>
+      <div className="page-title">💶 SIMULATION BUDGET MERCATO</div>
+      <div className="page-sub">Planification recrutement · {clubName||'Mon Club'}</div>
+
+      <div style={{display:"flex",gap:12,marginBottom:20,alignItems:"flex-end",flexWrap:"wrap"}}>
+        <div style={{flex:1,minWidth:200}}>
+          <div style={{fontSize:9,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase",color:"var(--muted)",marginBottom:6}}>💰 Budget total disponible (€)</div>
+          <input className="form-input" style={{fontSize:16,fontWeight:700,fontFamily:"'Bebas Neue',sans-serif",letterSpacing:1}} placeholder="Ex: 150000" value={budgetMax} onChange={e=>setBudgetMax(e.target.value)}/>
+        </div>
+        {budgetNum>0&&(
+          <div style={{minWidth:200}}>
+            <div style={{fontSize:10,color:"var(--muted)",marginBottom:4}}>Utilisé: {pctUsed}%</div>
+            <div style={{height:8,background:"var(--border)",borderRadius:4,overflow:"hidden"}}>
+              <div style={{height:"100%",width:`${Math.min(pctUsed,100)}%`,background:overBudget?"var(--red)":pctUsed>80?"var(--orange)":"var(--green)",borderRadius:4,transition:"width .3s"}}/>
+            </div>
+            <div style={{fontSize:11,marginTop:4,color:overBudget?"var(--red)":"var(--muted)"}}>{overBudget?`⚠️ Dépassement de ${(total-budgetNum).toLocaleString("fr")} €`:`Reste: ${(budgetNum-total).toLocaleString("fr")} €`}</div>
+          </div>
+        )}
+      </div>
+
       <div className="budget-grid">
-        {[["Budget total estimé",total.toLocaleString("fr")+" €","var(--gold)"],["Masse sal. mensuelle",rows.reduce((s,r)=>(s+(parseInt(r.salaire)||0)),0).toLocaleString("fr")+" €/mois","var(--green)"],["Nb postes à recruter",rows.length,"var(--blue)"]].map(([l,v,c])=>(
+        {[["Coût total estimé",total.toLocaleString("fr")+" €",overBudget?"var(--red)":"var(--gold)"],["Masse sal. mensuelle",masseSal.toLocaleString("fr")+" €/mois","var(--green)"],["Postes à recruter",rows.length,"var(--blue)"]].map(([l,v,c])=>(
           <div className="budget-kpi" key={l}><div className="budget-kpi-n" style={{color:c}}>{v}</div><div className="budget-kpi-l">{l}</div></div>
         ))}
       </div>
       <div className="tbl-wrap">
         <table>
-          <thead><tr><th>Poste à recruter</th><th>Rôle</th><th>Joueur cible</th><th>Statut</th><th>Salaire est. (€/mois)</th><th>Indemnité (€)</th><th>Durée</th><th>Coût total estimé</th></tr></thead>
+          <thead><tr><th>Poste à recruter</th><th>Rôle</th><th>Joueur cible</th><th>Statut</th><th>Salaire (€/mois)</th><th>Indemnité (€)</th><th>Durée</th><th>Coût total</th><th></th></tr></thead>
           <tbody>
             {rows.map(r=>{
               const matched=cibles.find(c=>c.nom.toLowerCase()===r.joueur.toLowerCase());
               const sal=parseInt(r.salaire)||0;
               const ind=parseInt(r.indemnite)||0;
-              const mois=r.duree==="2 ans"?24:12;
+              const mois=r.duree==="3 ans"?36:r.duree==="2 ans"?24:12;
               const cout=sal*mois+ind;
               return (
                 <tr key={r.id}>
-                  <td><strong>{r.poste}</strong></td>
-                  <td><RoleTag role={r.role}/></td>
-                  <td><input className="form-input" style={{width:160,padding:"5px 8px"}} value={r.joueur} onChange={e=>upd(r.id,"joueur",e.target.value)} placeholder="Nom du joueur..."/></td>
-                  <td>{matched?<StatusTag statut={matched.statut}/>:<span style={{color:"var(--dim)",fontSize:11}}>À définir</span>}</td>
-                  <td><input className="form-input" style={{width:120,padding:"5px 8px",textAlign:"right"}} value={r.salaire} onChange={e=>upd(r.id,"salaire",e.target.value)} placeholder="0"/></td>
-                  <td><input className="form-input" style={{width:120,padding:"5px 8px",textAlign:"right"}} value={r.indemnite} onChange={e=>upd(r.id,"indemnite",e.target.value)} placeholder="0"/></td>
-                  <td><select className="form-select" style={{width:90}} value={r.duree} onChange={e=>upd(r.id,"duree",e.target.value)}><option>1 an</option><option>2 ans</option><option>3 ans</option></select></td>
+                  <td><input className="form-input" style={{width:150,padding:"5px 8px"}} value={r.poste} onChange={e=>upd(r.id,"poste",e.target.value)} placeholder="Nom du poste..."/></td>
+                  <td><select className="form-select" style={{width:80}} value={r.role} onChange={e=>upd(r.id,"role",e.target.value)}>{ROLES.map(ro=><option key={ro}>{ro}</option>)}</select></td>
+                  <td><input className="form-input" style={{width:150,padding:"5px 8px"}} value={r.joueur} onChange={e=>upd(r.id,"joueur",e.target.value)} placeholder="Nom du joueur..."/></td>
+                  <td>{matched?<StatusTag statut={matched.statut}/>:<span style={{color:"var(--dim)",fontSize:11}}>—</span>}</td>
+                  <td><input className="form-input" style={{width:110,padding:"5px 8px",textAlign:"right"}} value={r.salaire} onChange={e=>upd(r.id,"salaire",e.target.value)} placeholder="0"/></td>
+                  <td><input className="form-input" style={{width:110,padding:"5px 8px",textAlign:"right"}} value={r.indemnite} onChange={e=>upd(r.id,"indemnite",e.target.value)} placeholder="0"/></td>
+                  <td><select className="form-select" style={{width:85}} value={r.duree} onChange={e=>upd(r.id,"duree",e.target.value)}><option>1 an</option><option>2 ans</option><option>3 ans</option></select></td>
                   <td style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:600,color:"var(--gold)"}}>{cout?cout.toLocaleString("fr")+" €":"—"}</td>
+                  <td><button className="btn btn-red btn-sm" style={{padding:"3px 7px"}} onClick={()=>delRow(r.id)}>✕</button></td>
                 </tr>
               );
             })}
             <tr style={{background:"rgba(245,166,35,.04)",borderTop:"2px solid var(--gold)"}}>
-              <td colSpan={7} style={{fontWeight:700,fontSize:13}}>TOTAL BUDGET ESTIMÉ</td>
-              <td style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:14,color:"var(--gold)"}}>{total.toLocaleString("fr")} €</td>
+              <td colSpan={7} style={{fontWeight:700,fontSize:13}}>TOTAL</td>
+              <td style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:700,fontSize:14,color:overBudget?"var(--red)":"var(--gold)"}}>{total.toLocaleString("fr")} €</td>
+              <td></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div className="info" style={{marginTop:16}}>
-        <span>💡</span><div>Fourchettes réalistes D2 Andorre : GK 800-1500€/mois · DEF 600-1200€/mois · MIL 800-1400€/mois · ATT 1000-1800€/mois.</div>
+      <div style={{marginTop:12,display:"flex",gap:8}}>
+        <button className="btn btn-gold btn-sm" onClick={addRow}>➕ Ajouter un poste</button>
       </div>
+      {overBudget&&<div className="err" style={{marginTop:16}}><span>🚨</span><div>Budget dépassé de <strong>{(total-budgetNum).toLocaleString("fr")} €</strong> — réduis les salaires ou supprime un poste.</div></div>}
     </div>
   );
 }
@@ -1810,7 +1840,18 @@ export default function App(){
   const urgents=players.filter(p=>ctAlert(p.finContrat)).length;
   const prio3=cibles.filter(p=>p.priorite==="★★★").length;
   const pipeline={"Identifié":cibles.filter(p=>p.statut==="Identifié").length,"Contacté":cibles.filter(p=>p.statut==="Contacté").length,"Observé":cibles.filter(p=>p.statut==="Observé").length,"En négociation":cibles.filter(p=>p.statut==="En négociation").length,"Signé":cibles.filter(p=>p.statut==="Signé").length,"Refusé":cibles.filter(p=>p.statut==="Refusé").length};
-  const POSTES_RENFORCER=[{poste:"Gardien #1",role:"GK",profil:"Expérimenté 25-33 ans, bon avec les pieds",urgence:"URGENT"},{poste:"Défenseur Central",role:"DEF",profil:"Physique, leadership, jeu aérien",urgence:"URGENT"},{poste:"Latéral Droit",role:"DEF",profil:"Double profil AD/LD, actif défensivement",urgence:"URGENT"},{poste:"Milieu Box-to-Box",role:"MIL",profil:"Volume, récupération, propre techniquement",urgence:"IMPORTANT"},{poste:"Ailier Gauche",role:"ATT",profil:"Vitesse, dribble, finition (libre de préférence)",urgence:"IMPORTANT"},{poste:"Avant-Centre",role:"ATT",profil:"Buteur référence D3/D4, physique 1m85+",urgence:"SOUHAITABLE"}];
+  const [postesRenforcer, setPostesRenforcer]=useState([
+    {id:1,poste:"Gardien #1",role:"GK",profil:"Expérimenté 25-33 ans, bon avec les pieds",urgence:"URGENT"},
+    {id:2,poste:"Défenseur Central",role:"DEF",profil:"Physique, leadership, jeu aérien",urgence:"URGENT"},
+    {id:3,poste:"Latéral Droit",role:"DEF",profil:"Double profil AD/LD, actif défensivement",urgence:"URGENT"},
+    {id:4,poste:"Milieu Box-to-Box",role:"MIL",profil:"Volume, récupération, propre techniquement",urgence:"IMPORTANT"},
+    {id:5,poste:"Ailier Gauche",role:"ATT",profil:"Vitesse, dribble, finition (libre de préférence)",urgence:"IMPORTANT"},
+    {id:6,poste:"Avant-Centre",role:"ATT",profil:"Buteur référence D3/D4, physique 1m85+",urgence:"SOUHAITABLE"},
+  ]);
+  const [nextPosteId, setNextPosteId]=useState(7);
+  const addPoste=()=>{setPostesRenforcer(p=>[...p,{id:nextPosteId,poste:"",role:"ATT",profil:"",urgence:"IMPORTANT"}]);setNextPosteId(n=>n+1);};
+  const updPoste=(id,k,v)=>setPostesRenforcer(p=>p.map(x=>x.id===id?{...x,[k]:v}:x));
+  const delPoste=(id)=>setPostesRenforcer(p=>p.filter(x=>x.id!==id));
 
   const handleAnalyze=async()=>{
     if(!url.trim())return;
@@ -1849,24 +1890,31 @@ export default function App(){
     if(viewP?.id===id)setViewP(null);
   };
 
-  /* ══ FIX 5 — handleSign : insert + delete + reload (ROBUSTE) ══ */
+  /* ══ FIX 5 — handleSign : insert + delete + reload (ULTRA-ROBUSTE) ══ */
   const [signError, setSignError] = useState(null);
   const handleSign=async(cible)=>{
+    if(!cible){console.error('handleSign: no cible');return;}
     try {
-      if(!authData?.profile?.club_id){console.error('No club_id');return;}
+      if(!authData?.profile?.club_id){alert('Erreur: pas de club_id');return;}
       const clubId=authData.profile.club_id;
-      const signed={...cible,categorie:'EFFECTIF',statut:'Sous contrat'};
+      const signed={...cible,categorie:'EFFECTIF',statut:'Sous contrat',club:cible.club||cible.clubActuel||''};
       const row = toDbRow(signed, clubId);
+      // Retirer le champ 'id' pour éviter conflit (Supabase génère l'id)
+      delete row.id;
 
-      console.log('Signing player:', cible.nom, 'row keys:', Object.keys(row).length);
+      console.log('Signing player:', cible.nom, 'to players table, club_id:', clubId);
+      console.log('Row:', JSON.stringify(row).substring(0, 300));
+
       const{data,error}=await supabase.from('players').insert(row).select().single();
       if(error){
-        console.error('Sign INSERT error:', error.code, error.message);
-        setSignError(`❌ Erreur signature: ${error.message}`);
-        setTimeout(()=>setSignError(null), 6000);
+        console.error('Sign INSERT error:', JSON.stringify(error));
+        const msg = `Erreur signature: ${error.message} (code: ${error.code})`;
+        setSignError(msg);
+        alert(msg);
+        setTimeout(()=>setSignError(null), 8000);
         return;
       }
-      console.log('Insert OK, deleting from targets id:', cible.id);
+      console.log('Insert OK id:', data?.id, '— deleting target id:', cible.id);
       const delRes = await supabase.from('targets').delete().eq('id',cible.id);
       if(delRes.error) console.error('Delete target error:', delRes.error);
 
@@ -1876,8 +1924,10 @@ export default function App(){
       setTimeout(()=>setSignedFlash(null),3000);
     } catch(e) {
       console.error('handleSign CRASH:', e);
-      setSignError(`❌ Erreur: ${e.message}`);
-      setTimeout(()=>setSignError(null), 6000);
+      const msg = `Erreur inattendue: ${e.message}`;
+      setSignError(msg);
+      alert(msg);
+      setTimeout(()=>setSignError(null), 8000);
     }
   };
 
@@ -1892,12 +1942,29 @@ export default function App(){
     }
   };
 
-  /* ══ FIX 6 — handleEditSave : update + reload ══ */
+  /* ══ FIX 6 — handleEditSave : update + reload + INSERT si nouveau ══ */
   const handleEditSave=async(updated)=>{
+    const clubId = authData.profile.club_id;
     const table=updated.categorie==='EFFECTIF'?'players':'targets';
-    const row = toDbRow(updated, authData.profile.club_id);
+    const row = toDbRow(updated, clubId);
+    delete row.id; // Ne jamais envoyer l'id JS
+
+    // Si le joueur est nouveau (flag _isNew), faire un INSERT
+    if(updated._isNew){
+      const{data,error}=await supabase.from(table).insert(row).select().single();
+      if(error){
+        console.error('Add manual error:', error);
+        alert(`Erreur ajout: ${error.message}`);
+        return;
+      }
+      await loadPlayers();
+      setEditP(null);
+      return;
+    }
+
+    // Sinon UPDATE
     const{error}=await supabase.from(table).update(row).eq('id',updated.id);
-    if(error){console.error('Edit save error:',error);return;}
+    if(error){console.error('Edit save error:',error);alert(`Erreur: ${error.message}`);return;}
     await loadPlayers();
     setEditP(null);
     if(viewP?.id===updated.id){
@@ -2001,16 +2068,29 @@ export default function App(){
                 <div className="kpi" style={{borderTop:"2px solid var(--purple)"}}><div className="kpi-n" style={{color:"var(--purple)"}}>{cibles.length}</div><div className="kpi-l">🎯 Cibles mercato</div><div className="kpi-icon">🎯</div></div>
                 <div className="kpi" style={{borderTop:"2px solid var(--red)"}}><div className="kpi-n" style={{color:"var(--red)"}}>{prio3}</div><div className="kpi-l">🔴 Priorité ★★★</div><div className="kpi-icon">⭐</div></div>
                 <div className="kpi" style={{borderTop:`2px solid ${urgents>0?"var(--red)":"var(--border)"}`}}><div className="kpi-n" style={{color:urgents>0?"var(--orange)":"var(--muted)"}}>{urgents}</div><div className="kpi-l">⚠️ Contrats urgents</div><div className="kpi-icon">⚠️</div></div>
-                <div className="kpi" style={{borderTop:"2px solid var(--cyan)"}}><div className="kpi-n" style={{color:"var(--cyan)"}}>{POSTES_RENFORCER.length}</div><div className="kpi-l">🏟️ Postes à recruter</div><div className="kpi-icon">🏟️</div></div>
+                <div className="kpi" style={{borderTop:"2px solid var(--cyan)"}}><div className="kpi-n" style={{color:"var(--cyan)"}}>{postesRenforcer.length}</div><div className="kpi-l">🏟️ Postes à recruter</div><div className="kpi-icon">🏟️</div></div>
                 <div className="kpi" style={{borderTop:"2px solid var(--gold)"}}><div className="kpi-n" style={{color:"var(--gold)",fontSize:18}}>Mercato</div><div className="kpi-l">📅 Saison 2025-26</div><div className="kpi-icon">💶</div></div>
               </div>
               <div className="dash-grid">
                 <div className="card">
                   <div className="section-title">🔍 POSTES À RENFORCER</div>
                   <table className="postes-table">
-                    <thead><tr><th>Poste</th><th>Rôle</th><th>Profil cible</th><th>Urgence</th></tr></thead>
-                    <tbody>{POSTES_RENFORCER.map(p=>(<tr key={p.poste}><td style={{fontWeight:600}}>{p.poste}</td><td><RoleTag role={p.role}/></td><td style={{color:"var(--muted)",fontSize:11}}>{p.profil}</td><td><span className={`urg-${p.urgence.toLowerCase()}`}>{p.urgence}</span></td></tr>))}</tbody>
+                    <thead><tr><th>Poste</th><th>Rôle</th><th>Profil cible</th><th>Urgence</th><th></th></tr></thead>
+                    <tbody>
+                      {postesRenforcer.map(p=>(
+                        <tr key={p.id}>
+                          <td><input className="form-input" style={{width:130,padding:"4px 8px",fontSize:12}} value={p.poste} onChange={e=>updPoste(p.id,"poste",e.target.value)} placeholder="Poste..."/></td>
+                          <td><select className="form-select" style={{width:70,padding:"4px 6px",fontSize:11}} value={p.role} onChange={e=>updPoste(p.id,"role",e.target.value)}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></td>
+                          <td><input className="form-input" style={{width:"100%",padding:"4px 8px",fontSize:11}} value={p.profil} onChange={e=>updPoste(p.id,"profil",e.target.value)} placeholder="Profil recherché..."/></td>
+                          <td><select className="form-select" style={{width:110,padding:"4px 6px",fontSize:10}} value={p.urgence} onChange={e=>updPoste(p.id,"urgence",e.target.value)}>
+                            <option value="URGENT">URGENT</option><option value="IMPORTANT">IMPORTANT</option><option value="SOUHAITABLE">SOUHAITABLE</option>
+                          </select></td>
+                          <td><button style={{background:"none",border:"none",color:"var(--dim)",cursor:"pointer",fontSize:12}} onClick={()=>delPoste(p.id)}>✕</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
                   </table>
+                  <button className="btn btn-ghost btn-sm" style={{marginTop:10}} onClick={addPoste}>➕ Ajouter un poste</button>
                 </div>
                 <div className="card">
                   <div className="section-title">📊 PIPELINE SCOUTING</div>
@@ -2038,14 +2118,16 @@ export default function App(){
           {tab==="effectif"&&(
             <PlayerTable players={effectif} title="👥 EFFECTIF" rowClass="tbl-row-eff"
               onView={p=>setViewP(p)} onEdit={p=>setEditP(p)} onDelete={handleDelete}
-              onExport={()=>exportCSV(effectif)}/>
+              onExport={()=>exportCSV(effectif)}
+              onAdd={()=>setEditP({...emptyPlayer(),categorie:'EFFECTIF',statut:'Sous contrat',_isNew:true})}/>
           )}
 
           {tab==="cibles"&&(
-            <PlayerTable players={cibles} title="🎯 CIBLES MERCATO ÉTÉ 2026" rowClass="tbl-row-cib"
+            <PlayerTable players={cibles} title="🎯 CIBLES MERCATO" rowClass="tbl-row-cib"
               onView={p=>setViewP(p)} onEdit={p=>setEditP(p)} onDelete={handleDelete}
               onExport={()=>exportCSV(cibles)}
-              onSign={handleSign} onRefuse={handleRefuse}/>
+              onSign={handleSign} onRefuse={handleRefuse}
+              onAdd={()=>setEditP({...emptyPlayer(),categorie:'CIBLE',statut:'Identifié',_isNew:true})}/>
           )}
 
           {tab==="analyser"&&(
@@ -2093,7 +2175,7 @@ export default function App(){
 
           {tab==="terrain"&&<TerrainPage players={players}/>}
           {tab==="comparer"&&<ComparateurPage players={players}/>}
-          {tab==="budget"&&<BudgetPage cibles={cibles}/>}
+          {tab==="budget"&&<BudgetPage cibles={cibles} clubName={clubName}/>}
           {tab==="guide"&&<GuidePage/>}
           {tab==="profil"&&<ProfilPage authData={authData} onUpdated={setAuthData}/>}
           {tab==="admin"&&authData?.user?.email===ADMIN_EMAIL&&<AdminPage onLogout={handleLogout}/>}
