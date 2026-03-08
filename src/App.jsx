@@ -458,26 +458,6 @@ const emptyPlayer = () => ({
 });
 
 /* ══════════════════════════════════════════════════════════
-   DEMO DATA
-══════════════════════════════════════════════════════════ */
-const DEMO_EFF = [
-  {id:101,nom:"Armando Leon",nationalite:"Mexique",ddn:"18/01/2000",age:"25",taille:"189",pied:"Droit",poste:"Avant-centre",role:"ATT",club:"FC Santa Coloma",ligue:"Andorre D1",valeur:"300000",finContrat:"30/06/2026",matchs:"",buts:"",passes:"",statut:"Sous contrat",priorite:"★★★",categorie:"EFFECTIF",tmUrl:"https://www.transfermarkt.fr/armando-leon/profil/spieler/760988",commentaires:"⚠️ Vérif club: aussi cité Rànger's"},
-  {id:102,nom:"Karim Diagne",nationalite:"France",ddn:"30/12/1999",age:"25",taille:"180",pied:"Droit",poste:"Milieu défensif",role:"MIL",club:"FC Pas de la Casa",ligue:"Andorre D1",valeur:"100000",finContrat:"30/06/2026",matchs:"49",buts:"",passes:"",statut:"Sous contrat",priorite:"★★★",categorie:"EFFECTIF",tmUrl:"https://www.transfermarkt.fr/karim-diagne/profil/spieler/733820",commentaires:"Postes 2: Latéral droit"},
-  {id:103,nom:"Javi Lopez",nationalite:"Espagne",ddn:"21/04/1990",age:"35",taille:"180",pied:"Gauche",poste:"Latéral gauche",role:"DEF",club:"FC Pas de la Casa",ligue:"Andorre D1",valeur:"50000",finContrat:"12/08/2027",matchs:"90",buts:"1",passes:"2",statut:"Sous contrat",priorite:"★★★",categorie:"EFFECTIF",tmUrl:"https://www.transfermarkt.fr/javi-lopez/leistungsdatendetails/spieler/388511",commentaires:"Option 2 ans bilatérale. Postes 2: DC"},
-  {id:104,nom:"Iker Alvarez",nationalite:"Andorre",ddn:"16/09/2003",age:"21",taille:"",pied:"",poste:"Latéral gauche",role:"DEF",club:"FS La Massana",ligue:"Andorre D2",valeur:"50000",finContrat:"30/06/2026",matchs:"",buts:"",passes:"",statut:"Sous contrat",priorite:"★★★",categorie:"EFFECTIF",tmUrl:"https://www.transfermarkt.fr/iker-alvarez/profil/spieler/724631",commentaires:"Ex-Andorra U21 (8 caps)"},
-  {id:105,nom:"Marti Riverola",nationalite:"Espagne",ddn:"26/01/1991",age:"34",taille:"177",pied:"Droit",poste:"Milieu central",role:"MIL",club:"FS La Massana",ligue:"Andorre D2",valeur:"",finContrat:"30/06/2026",matchs:"329",buts:"26",passes:"28",statut:"Sous contrat",priorite:"★★★",categorie:"EFFECTIF",tmUrl:"https://www.transfermarkt.fr/marti-riverola/profil/spieler/143863",commentaires:"Manager du club aussi. Postes 2: MO"},
-  {id:106,nom:"Nathan Deville",nationalite:"France",ddn:"17/04/2003",age:"22",taille:"180",pied:"",poste:"Gardien",role:"GK",club:"FC Pas de la Casa",ligue:"Andorre D1",valeur:"50000",finContrat:"30/06/2026",matchs:"",buts:"",passes:"",statut:"Sous contrat",priorite:"★★",categorie:"EFFECTIF",tmUrl:"https://www.transfermarkt.com/nathan-deville/profil/spieler/1381338",commentaires:"Dernière prolong. 30/08/2025"},
-];
-const DEMO_CIB = [
-  {id:201,nom:"Victor Poisson",nationalite:"France",ddn:"05/06/2000",age:"25",taille:"198",pied:"Droit",poste:"Gardien",role:"GK",club:"Sans club",ligue:"—",valeur:"",finContrat:"—",matchs:"",buts:"",passes:"",statut:"Contacté",priorite:"★★★",categorie:"CIBLE",agent:"Goalactic",passeportUE:"Oui",tmUrl:"https://www.transfermarkt.fr/victor-poisson/profil/spieler/981785",commentaires:"Libre depuis 01/07/2025. Dernier: Dijon. 198cm."},
-  {id:202,nom:"Albertin",nationalite:"Espagne",ddn:"06/04/1995",age:"30",taille:"",pied:"Droit",poste:"Milieu central",role:"MIL",club:"Atlético Astorga",ligue:"Espagne D4",valeur:"",finContrat:"30/06/2026",matchs:"",buts:"",passes:"",statut:"Contacté",priorite:"★★★",categorie:"CIBLE",agent:"No agent",passeportUE:"Oui",tmUrl:"https://www.transfermarkt.fr/albertin/profil/spieler/809519",commentaires:"Sans agent — contact direct. Postes 2: DC"},
-  {id:203,nom:"Ludovic Faucher",nationalite:"France",ddn:"10/03/1998",age:"27",taille:"174",pied:"Les deux",poste:"Milieu central",role:"MIL",club:"Stade Poitevin FC",ligue:"France N2 (D4)",valeur:"",finContrat:"",matchs:"",buts:"",passes:"",statut:"Contacté",priorite:"★★★",categorie:"CIBLE",agent:"Talent Sport",passeportUE:"Oui",tmUrl:"https://www.transfermarkt.fr/ludovic-faucher/profil/spieler/820386",commentaires:"Postes 2: MO"},
-  {id:204,nom:"Dylan Okyere",nationalite:"France/Ghana",ddn:"18/07/2001",age:"24",taille:"170",pied:"Gauche",poste:"Ailier droit",role:"ATT",club:"Nîmes Olympique",ligue:"France N2 (D4)",valeur:"",finContrat:"",matchs:"",buts:"",passes:"",statut:"Contacté",priorite:"★★★",categorie:"CIBLE",agent:"Talent Sport",passeportUE:"Oui",tmUrl:"https://www.transfermarkt.fr/dylan-okyere/profil/spieler/983288",commentaires:"Postes 2: AG, 2e ATT"},
-  {id:205,nom:"Thomas Carbonero",nationalite:"France/Espagne",ddn:"18/09/2001",age:"24",taille:"175",pied:"Droit",poste:"Latéral droit",role:"DEF",club:"Aubagne FC",ligue:"France N (D3)",valeur:"100000",finContrat:"30/06/2025",matchs:"",buts:"",passes:"",statut:"Observé",priorite:"★★★",categorie:"CIBLE",passeportUE:"Oui",tmUrl:"https://www.transfermarkt.fr/thomas-carbonero/leistungsdatendetails/spieler/626589",commentaires:"Contrat expiré. Postes 2: LG"},
-  {id:206,nom:"Juanda Terradez",nationalite:"Espagne/France",ddn:"17/05/2005",age:"20",taille:"",pied:"",poste:"Gardien",role:"GK",club:"FC Rànger's",ligue:"Andorre D1",valeur:"200000",finContrat:"30/06/2026",matchs:"",buts:"",passes:"",statut:"Observé",priorite:"★★★",categorie:"CIBLE",passeportUE:"Oui",tmUrl:"https://www.transfermarkt.fr/juanda-terradez/leistungsdaten/spieler/1319364",commentaires:"Parents esp, grand-mères fra/écu"},
-];
-
-/* ══════════════════════════════════════════════════════════
    EXPORT
 ══════════════════════════════════════════════════════════ */
 const COLS = ["Name","Nationalité","Date naissance","Âge","Taille cm","Pied","Poste","Rôle","Poste secondaires","Club","Ligue","Valeur €","Début contrat","Fin contrat","Salaire €/mois","Matchs","Buts","Passes D.","xG","xA","Note SS","Statut","Priorité","Catégorie","Agent","Passeport UE","Esp-Catalan","TM URL","SofaScore URL","Points forts","Commentaires"];
@@ -899,8 +879,6 @@ function EditModal({player, onSave, onClose}){
 
 /* ══════════════════════════════════════════════════════════
    PLAYER TABLE
-   FIX: boutons actions — stopPropagation sur chaque bouton
-        + guard sur le tr pour ne pas ouvrir la fiche
 ══════════════════════════════════════════════════════════ */
 function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExport, onSign, onRefuse}){
   const [search,setSearch]=useState("");
@@ -916,13 +894,10 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
   });
 
   const isCibles = players.some(p=>p.categorie==="CIBLE");
-
-  // Handler bouton — stopPropagation systématique
   const btn = (fn) => (e) => { e.stopPropagation(); e.preventDefault(); fn(); };
 
   return (
     <div>
-      {/* Confirmation signature */}
       {confirmSign&&(
         <div className="overlay" onClick={e=>e.target===e.currentTarget&&setConfirmSign(null)}>
           <div className="modal" style={{maxWidth:440,textAlign:'center'}}>
@@ -1004,7 +979,6 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
                 <td><StatusTag statut={p.statut}/></td>
                 <td><PrioTag prio={p.priorite}/></td>
                 <td style={{fontSize:11,color:"var(--muted)"}}>{p.agent||"—"}</td>
-                {/* ══ ACTIONS — stopPropagation sur chaque bouton ══ */}
                 <td style={{whiteSpace:"nowrap"}}>
                   <div style={{display:"flex",gap:4}} onClick={e=>e.stopPropagation()}>
                     {isCibles && p.statut!=="Signé" && p.statut!=="Refusé" && onSign && (
@@ -1598,6 +1572,159 @@ function AuthPage({onLogin}){
 }
 
 /* ══════════════════════════════════════════════════════════
+   ██████╗  FIX 1 — toDbRow COMPLET
+   Convertit un objet joueur JS → row Supabase
+   TOUS les champs sont maintenant inclus
+══════════════════════════════════════════════════════════ */
+const toDbRow = (p, clubId) => ({
+  club_id: clubId,
+  // Identité
+  nom: p.nom || '',
+  nationalite: p.nationalite || '',
+  ddn: p.ddn || '',
+  age: p.age || '',
+  taille: p.taille || '',
+  pied: p.pied || '',
+  poste: p.poste || '',
+  role: p.role || '',
+  postes_sec: p.postesSec || p.postes_sec || '',
+  // Club & Contrat
+  club_actuel: p.club || p.clubActuel || p.club_actuel || '',
+  ligue: p.ligue || '',
+  valeur: p.valeur || '',
+  debut_contrat: p.debutContrat || p.debut_contrat || '',
+  fin_contrat: p.finContrat || p.fin_contrat || '',
+  salaire: p.salaire || '',
+  agent: p.agent || '',
+  contact_agent: p.contactAgent || p.contact_agent || '',
+  statut_contrat: p.statutContrat || p.statut_contrat || '',
+  indemnite: p.indemnite || '',
+  // Stats
+  competition: p.competition || '',
+  matchs: p.matchs || '',
+  minutes: p.minutes || '',
+  buts: p.buts || '',
+  passes: p.passes || '',
+  xg: p.xG || p.xg || '',
+  xa: p.xA || p.xa || '',
+  note_ss: p.noteSS || p.note_ss || '',
+  duels: p.duels || '',
+  passe_pct: p.passePct || p.passe_pct || '',
+  cartons: p.cartons || '',
+  blessures: p.blessures || '',
+  // Critères spécifiques
+  passeport_ue: p.passeportUE || p.passeport_ue || '',
+  permis: p.permis || '',
+  esp_catalan: p.espCatalan || p.esp_catalan || '',
+  altitude: p.altitude || '',
+  dispo: p.dispo || '',
+  // Évaluation
+  points_forts: p.pointsForts || p.points_forts || '',
+  points_faibles: p.pointsFaibles || p.points_faibles || '',
+  fit: p.fit || '',
+  compat_sal: p.compatSal || p.compat_sal || '',
+  recommande: p.recommande || '',
+  date_contact: p.dateContact || p.date_contact || '',
+  retour_joueur: p.retourJoueur || p.retour_joueur || '',
+  decision: p.decision || '',
+  commentaires: p.commentaires || '',
+  statut: p.statut || 'Identifié',
+  priorite: p.priorite || '★★',
+  // URLs
+  tm_url: p.tmUrl || p.tm_url || '',
+  ss_url: p.ssUrl || p.ss_url || '',
+  video_url: p.videoUrl || p.video_url || '',
+  photo_url: p.photoUrl || p.photo_url || '',
+  club_logo_url: p.clubLogoUrl || p.club_logo_url || '',
+  // JSON
+  notation: p.notation ? JSON.stringify(p.notation) : '{}',
+  contacts: p.contacts ? JSON.stringify(p.contacts) : '[]',
+});
+
+/* ══════════════════════════════════════════════════════════
+   ██████╗  FIX 2 — mapDbToPlayer COMPLET
+   Convertit un row Supabase → objet joueur JS
+   TOUS les champs sont maintenant re-mappés
+══════════════════════════════════════════════════════════ */
+const mapDbToPlayer = (p, categorie) => ({
+  // Garder l'id DB
+  id: p.id,
+  categorie,
+  // Identité
+  nom: p.nom || '',
+  nationalite: p.nationalite || '',
+  ddn: p.ddn || '',
+  age: p.age || '',
+  taille: p.taille || '',
+  pied: p.pied || '',
+  poste: p.poste || '',
+  role: p.role || '',
+  postesSec: p.postes_sec || '',
+  // Club & Contrat
+  club: p.club_actuel || '',
+  clubActuel: p.club_actuel || '',
+  ligue: p.ligue || '',
+  valeur: p.valeur || '',
+  debutContrat: p.debut_contrat || '',
+  finContrat: p.fin_contrat || '',
+  salaire: p.salaire || '',
+  agent: p.agent || '',
+  contactAgent: p.contact_agent || '',
+  statutContrat: p.statut_contrat || '',
+  indemnite: p.indemnite || '',
+  // Stats
+  competition: p.competition || '',
+  matchs: p.matchs || '',
+  minutes: p.minutes || '',
+  buts: p.buts || '',
+  passes: p.passes || '',
+  xG: p.xg || '',
+  xA: p.xa || '',
+  noteSS: p.note_ss || '',
+  duels: p.duels || '',
+  passePct: p.passe_pct || '',
+  cartons: p.cartons || '',
+  blessures: p.blessures || '',
+  // Critères spécifiques
+  passeportUE: p.passeport_ue || '',
+  permis: p.permis || '',
+  espCatalan: p.esp_catalan || '',
+  altitude: p.altitude || '',
+  dispo: p.dispo || '',
+  // Évaluation
+  pointsForts: p.points_forts || '',
+  pointsFaibles: p.points_faibles || '',
+  fit: p.fit || '',
+  compatSal: p.compat_sal || '',
+  recommande: p.recommande || '',
+  dateContact: p.date_contact || '',
+  retourJoueur: p.retour_joueur || '',
+  decision: p.decision || '',
+  commentaires: p.commentaires || '',
+  statut: p.statut || 'Identifié',
+  priorite: p.priorite || '★★',
+  // URLs
+  tmUrl: p.tm_url || '',
+  ssUrl: p.ss_url || '',
+  videoUrl: p.video_url || '',
+  photoUrl: p.photo_url || '',
+  clubLogoUrl: p.club_logo_url || '',
+  // JSON — parse safely
+  notation: (() => {
+    try {
+      if (!p.notation) return {technique:0,physique:0,mental:0,vitesse:0,defense:0,potentiel:0};
+      return typeof p.notation === 'string' ? JSON.parse(p.notation) : p.notation;
+    } catch { return {technique:0,physique:0,mental:0,vitesse:0,defense:0,potentiel:0}; }
+  })(),
+  contacts: (() => {
+    try {
+      if (!p.contacts) return [];
+      return typeof p.contacts === 'string' ? JSON.parse(p.contacts) : p.contacts;
+    } catch { return []; }
+  })(),
+});
+
+/* ══════════════════════════════════════════════════════════
    MAIN APP
 ══════════════════════════════════════════════════════════ */
 export default function App(){
@@ -1611,7 +1738,7 @@ export default function App(){
   const [loading,setLoading]=useState(false);
   const [loadStep,setLoadStep]=useState("");
   const [preview,setPreview]=useState(null);
-  const [saveError,setSaveError]=useState(""); // erreur sauvegarde séparée de l'erreur analyse
+  const [saveError,setSaveError]=useState("");
   const [analyzeError,setAnalyzeError]=useState("");
   const [editP,setEditP]=useState(null);
   const [viewP,setViewP]=useState(null);
@@ -1633,6 +1760,7 @@ export default function App(){
     loadPlayers();
   },[authData]);
 
+  /* ══ FIX 3 — loadPlayers utilise mapDbToPlayer ══ */
   const loadPlayers=async()=>{
     setDbLoading(true);
     try{
@@ -1641,80 +1769,12 @@ export default function App(){
         supabase.from('players').select('*').eq('club_id',clubId).order('created_at'),
         supabase.from('targets').select('*').eq('club_id',clubId).order('created_at'),
       ]);
-      const mapP=(p,cat)=>({
-        ...p,categorie:cat,finContrat:p.fin_contrat,clubActuel:p.club_actuel,
-        club:p.club_actuel,tmUrl:p.tm_url,videoUrl:p.video_url||'',
-        photoUrl:p.photo_url||'',clubLogoUrl:p.club_logo_url||'',
-        pointsForts:p.points_forts,pointsFaibles:p.points_faibles,
-        noteSS:p.note_ss,passeportUE:p.passeport_ue,espCatalan:p.esp_catalan,
-        debutContrat:p.debut_contrat,
-        notation:p.notation?(typeof p.notation==='string'?JSON.parse(p.notation):p.notation):{technique:0,physique:0,mental:0,vitesse:0,defense:0,potentiel:0},
-        contacts:p.contacts?(typeof p.contacts==='string'?JSON.parse(p.contacts):p.contacts):[],
-      });
-      setPlayers([...(effData||[]).map(p=>mapP(p,'EFFECTIF')),...(cibData||[]).map(p=>mapP(p,'CIBLE'))]);
-    }catch(e){console.error(e);}
+      setPlayers([
+        ...(effData||[]).map(p => mapDbToPlayer(p, 'EFFECTIF')),
+        ...(cibData||[]).map(p => mapDbToPlayer(p, 'CIBLE')),
+      ]);
+    }catch(e){console.error('loadPlayers error:', e);}
     finally{setDbLoading(false);}
-  };
-
-  // Construit le row DB — retire les colonnes inexistantes si nécessaire
-  const toDbRow=(p,clubId,skipNewCols=false)=>{
-    const base={
-      club_id:clubId,
-      nom:p.nom||'',poste:p.poste||'',role:p.role||'',
-      club_actuel:p.clubActuel||p.club_actuel||p.club||'',ligue:p.ligue||'',
-      nationalite:p.nationalite||'',age:p.age||'',taille:p.taille||'',
-      pied:p.pied||'',fin_contrat:p.finContrat||p.fin_contrat||'',
-      valeur:p.valeur||'',agent:p.agent||'',tm_url:p.tmUrl||p.tm_url||'',
-      statut:p.statut||'Identifié',commentaires:p.commentaires||'',
-      points_forts:p.pointsForts||p.points_forts||'',
-      points_faibles:p.pointsFaibles||p.points_faibles||'',
-      note_ss:p.noteSS||p.note_ss||'',
-      passeport_ue:p.passeportUE||p.passeport_ue||'',
-      esp_catalan:p.espCatalan||p.esp_catalan||'',
-      debut_contrat:p.debutContrat||p.debut_contrat||'',
-      matchs:p.matchs||'',buts:p.buts||'',passes:p.passes||'',
-      priorite:p.priorite||'★★',
-    };
-    // Colonnes ajoutees par migrations — absentes sur anciens schemas
-    if(!skipNewCols){
-      base.video_url=p.videoUrl||p.video_url||'';
-      base.notation=p.notation?JSON.stringify(p.notation):null;
-      base.contacts=p.contacts?JSON.stringify(p.contacts):null;
-      base.photo_url=p.photoUrl||p.photo_url||'';
-      base.club_logo_url=p.clubLogoUrl||p.club_logo_url||'';
-    }
-    return base;
-  };
-
-  // Insert robuste — retry avec schema minimal si erreur colonne
-  const safeInsert=async(table,p,clubId)=>{
-    // Tentative 1 : toutes les colonnes
-    let row=toDbRow(p,clubId,false);
-    let{data,error}=await supabase.from(table).insert(row).select().single();
-    if(!error) return{data,error};
-    console.error('Insert error:',error.code, error.message);
-    // Tentative 2 : sans colonnes optionnelles (42703 = colonne inconnue)
-    const isColErr=error.code==='42703'||error.message?.includes('column')||error.message?.includes('does not exist');
-    if(isColErr){
-      row=toDbRow(p,clubId,true);
-      const res=await supabase.from(table).insert(row).select().single();
-      if(!res.error) return{data:res.data,error:null};
-      console.error('Retry error:',res.error.code,res.error.message);
-      return{data:null,error:res.error};
-    }
-    return{data,error};
-  };
-
-  // Update robuste
-  const safeUpdate=async(table,p,clubId,id)=>{
-    let row=toDbRow(p,clubId,false);
-    let{error}=await supabase.from(table).update(row).eq('id',id);
-    if(error&&(error.code==='42703'||error.message?.includes('column'))){
-      row=toDbRow(p,clubId,true);
-      const res=await supabase.from(table).update(row).eq('id',id);
-      error=res.error;
-    }
-    return{error};
   };
 
   const handleLogin=(data)=>{setAuthData(data);if(data.newClub&&data.clubCode)setNewClubCode(data.clubCode);};
@@ -1735,19 +1795,22 @@ export default function App(){
     finally{setLoading(false);setLoadStep("");}
   };
 
+  /* ══ FIX 4 — handleSavePreview : insert + reload depuis DB ══ */
   const handleSavePreview=async()=>{
     if(!preview||!authData?.profile?.club_id)return;
     setSaveError("");
     const clubId=authData.profile.club_id;
     const table=preview.categorie==='EFFECTIF'?'players':'targets';
-    const {data,error}=await safeInsert(table,preview,clubId);
+    const row = toDbRow(preview, clubId);
+
+    const {data, error} = await supabase.from(table).insert(row).select().single();
     if(error){
-      console.error('Save error:',error);
+      console.error('Save error:', error);
       setSaveError(`❌ Erreur: ${error.message} (code: ${error.code})`);
       return;
     }
-    const saved={...preview,id:data?.id||preview.id,categorie:'CIBLE'};
-    setPlayers(prev=>[...prev,saved]);
+    // Reload depuis la DB pour garantir la cohérence
+    await loadPlayers();
     setPreview(null);setUrl('');setSaveError("");
     setTab('cibles');
   };
@@ -1761,42 +1824,53 @@ export default function App(){
     if(viewP?.id===id)setViewP(null);
   };
 
+  /* ══ FIX 5 — handleSign : insert + delete + reload ══ */
   const handleSign=async(cible)=>{
     if(!authData?.profile?.club_id)return;
     const clubId=authData.profile.club_id;
     const signed={...cible,categorie:'EFFECTIF',statut:'Sous contrat'};
-    const{data,error}=await safeInsert('players',signed,clubId);
+    const row = toDbRow(signed, clubId);
+
+    const{data,error}=await supabase.from('players').insert(row).select().single();
     if(error){console.error('Sign error:',error);return;}
     await supabase.from('targets').delete().eq('id',cible.id);
-    const mapped={...signed,id:data.id};
-    setPlayers(prev=>[...prev.filter(x=>x.id!==cible.id),mapped]);
-    if(viewP?.id===cible.id)setViewP(mapped);
+    await loadPlayers();
+    if(viewP?.id===cible.id)setViewP(null);
     setSignedFlash(cible.nom);
     setTimeout(()=>setSignedFlash(null),3000);
   };
 
   const handleRefuse=async(cible)=>{
-    const updated={...cible,statut:'Refusé'};
-    const{error}=await safeUpdate('targets',updated,authData.profile.club_id,cible.id);
+    const row = toDbRow({...cible,statut:'Refusé'}, authData.profile.club_id);
+    const{error}=await supabase.from('targets').update(row).eq('id',cible.id);
     if(error){console.error('Refuse error:',error);return;}
-    setPlayers(prev=>prev.map(p=>p.id===cible.id?updated:p));
-    if(viewP?.id===cible.id)setViewP(updated);
+    await loadPlayers();
+    if(viewP?.id===cible.id){
+      const updated = players.find(p=>p.id===cible.id);
+      if(updated) setViewP({...updated, statut:'Refusé'});
+    }
   };
 
+  /* ══ FIX 6 — handleEditSave : update + reload ══ */
   const handleEditSave=async(updated)=>{
     const table=updated.categorie==='EFFECTIF'?'players':'targets';
-    const{error}=await safeUpdate(table,updated,authData.profile.club_id,updated.id);
+    const row = toDbRow(updated, authData.profile.club_id);
+    const{error}=await supabase.from(table).update(row).eq('id',updated.id);
     if(error){console.error('Edit save error:',error);return;}
-    setPlayers(prev=>prev.map(p=>p.id===updated.id?updated:p));
+    await loadPlayers();
     setEditP(null);
-    if(viewP?.id===updated.id)setViewP(updated);
+    if(viewP?.id===updated.id){
+      // Re-fetch le joueur mis à jour depuis le state (sera mis à jour par loadPlayers)
+      setViewP(prev => ({...prev, ...updated}));
+    }
     if(preview?.id===updated.id)setPreview(updated);
   };
 
   const handleContactsChange=async(player,newContacts)=>{
     const updated={...player,contacts:newContacts};
     const table=player.categorie==='EFFECTIF'?'players':'targets';
-    const{error}=await safeUpdate(table,updated,authData.profile.club_id,player.id);
+    const row = toDbRow(updated, authData.profile.club_id);
+    const{error}=await supabase.from(table).update(row).eq('id',player.id);
     if(error){console.error('Contacts error:',error);return;}
     setPlayers(prev=>prev.map(p=>p.id===player.id?updated:p));
     if(viewP?.id===player.id)setViewP(updated);
@@ -1861,7 +1935,6 @@ export default function App(){
 
         <div className="main">
 
-          {/* ─── DASHBOARD ─── */}
           {tab==="dashboard"&&(
             <div>
               <div className="page-title">🏠 TABLEAU DE BORD</div>
@@ -1979,7 +2052,6 @@ export default function App(){
 
         </div>
 
-        {/* VIEW MODAL */}
         {viewP&&(
           <div className="overlay" onClick={e=>e.target===e.currentTarget&&setViewP(null)}>
             <div className="modal modal-lg">
