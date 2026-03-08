@@ -1665,7 +1665,7 @@ export default function App(){
       nationalite:p.nationalite||'',age:p.age||'',taille:p.taille||'',
       pied:p.pied||'',fin_contrat:p.finContrat||p.fin_contrat||'',
       valeur:p.valeur||'',agent:p.agent||'',tm_url:p.tmUrl||p.tm_url||'',
-      statut:p.statut||'',commentaires:p.commentaires||'',
+      statut:p.statut||'Identifié',commentaires:p.commentaires||'',
       points_forts:p.pointsForts||p.points_forts||'',
       points_faibles:p.pointsFaibles||p.points_faibles||'',
       note_ss:p.noteSS||p.note_ss||'',
@@ -1689,10 +1689,14 @@ export default function App(){
   const safeInsert=async(table,p,clubId)=>{
     let row=toDbRow(p,clubId,false);
     let{data,error}=await supabase.from(table).insert(row).select().single();
-    if(error&&(error.code==='42703'||error.message?.includes('column'))){
-      row=toDbRow(p,clubId,true);
-      const res=await supabase.from(table).insert(row).select().single();
-      data=res.data;error=res.error;
+    if(error){
+      console.error('Insert error:',error.code, error.message);
+      if(error.code==='42703'||error.message?.includes('column')){
+        row=toDbRow(p,clubId,true);
+        const res=await supabase.from(table).insert(row).select().single();
+        data=res.data;error=res.error;
+        if(res.error) console.error('Retry error:',res.error);
+      }
     }
     return{data,error};
   };
