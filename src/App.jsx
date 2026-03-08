@@ -440,6 +440,31 @@ function ctAlert(fin){
   return null;
 }
 
+/* ── Normalise valeur TM : "9M" → "9000000", "500K" → "500000", etc. ── */
+function normalizeValeur(raw) {
+  if (!raw) return '';
+  let s = String(raw).trim().replace(/[€$£\s]/g, '');
+  const mMatch = s.match(/^([0-9]+[.,]?[0-9]*)M$/i);
+  if (mMatch) return String(Math.round(parseFloat(mMatch[1].replace(',', '.')) * 1000000));
+  const kMatch = s.match(/^([0-9]+[.,]?[0-9]*)K$/i);
+  if (kMatch) return String(Math.round(parseFloat(kMatch[1].replace(',', '.')) * 1000));
+  const mioMatch = s.match(/^([0-9]+[.,]?[0-9]*)mio\.?$/i);
+  if (mioMatch) return String(Math.round(parseFloat(mioMatch[1].replace(',', '.')) * 1000000));
+  const cleaned = s.replace(/\./g, '').replace(/,/g, '');
+  const parsed = parseInt(cleaned, 10);
+  if (!isNaN(parsed) && parsed > 0) return String(parsed);
+  return raw;
+}
+
+/* ── Affiche valeur formatée : 9000000 → "9 000 000 €" ── */
+function formatValeur(v) {
+  if (!v) return '—';
+  const n = normalizeValeur(v);
+  const num = parseInt(n, 10);
+  if (isNaN(num) || num <= 0) return v;
+  return num.toLocaleString('fr') + ' €';
+}
+
 const emptyPlayer = () => ({
   id:Date.now(),
   nom:"",nationalite:"",ddn:"",age:"",taille:"",pied:"",
@@ -725,7 +750,7 @@ function FicheView({player:p, onEdit, onSave, onDiscard, isSaved, onContactsChan
         <div className="fiche-section-hdr" style={{background:"rgba(245,166,35,.06)",color:"var(--gold)"}}>🟡 2. SITUATION CONTRACTUELLE</div>
         <div className="fiche-body">
           <div className="fiche-grid">
-            {[["Club actuel",p.club],["Ligue / Niveau",p.ligue],["Valeur marché (TM)",p.valeur?parseInt(p.valeur).toLocaleString("fr")+" €":""],["Début contrat",p.debutContrat],["Fin contrat",p.finContrat],["Salaire est. (€/mois)",p.salaire],["Agent",p.agent],["Contact agent",p.contactAgent],["Statut",p.statutContrat]].map(([l,v])=>(
+            {[["Club actuel",p.club],["Ligue / Niveau",p.ligue],["Valeur marché (TM)",formatValeur(p.valeur)],["Début contrat",p.debutContrat],["Fin contrat",p.finContrat],["Salaire est. (€/mois)",p.salaire],["Agent",p.agent],["Contact agent",p.contactAgent],["Statut",p.statutContrat]].map(([l,v])=>(
               <div className="fiche-field" key={l}><div className="fiche-label">{l}</div>{l==="Fin contrat"?<span className={`fiche-val ${al?`ct-${al}`:""}`}>{v||"—"}</span>:<FVal v={v}/>}</div>
             ))}
           </div>
@@ -909,7 +934,7 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
             </div>
             <div style={{display:'flex',gap:10,justifyContent:'center'}}>
               <button className="btn btn-ghost" onClick={()=>setConfirmSign(null)}>Annuler</button>
-              <button className="btn btn-gold" onClick={()=>{ onSign(confirmSign); setConfirmSign(null); }}>✅ Confirmer</button>
+              <button className="btn btn-gold" onClick={async()=>{ setConfirmSign(null); try{ await onSign(confirmSign); }catch(e){console.error('Sign click error:',e);} }}>✅ Confirmer</button>
             </div>
           </div>
         </div>
@@ -970,7 +995,7 @@ function PlayerTable({players, title, rowClass, onView, onEdit, onDelete, onExpo
                   </div>
                 </td>
                 <td style={{fontSize:11,color:"var(--muted)"}}>{p.ligue}</td>
-                <td style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11}}>{p.valeur?parseInt(p.valeur).toLocaleString("fr")+"€":"—"}</td>
+                <td style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11}}>{formatValeur(p.valeur)}</td>
                 <td><CtCell val={p.finContrat}/></td>
                 <td style={{textAlign:"center"}}>{p.matchs||"—"}</td>
                 <td style={{textAlign:"center"}}>{p.buts||"—"}</td>
@@ -1087,7 +1112,7 @@ function ComparateurPage({players}){
     {l:"Club",k:"club",num:false},
     {l:"Ligue",k:"ligue",num:false},
     {l:"Fin contrat",k:"finContrat",num:false},
-    {l:"Valeur TM",k:"valeur",num:true,better:"lower",fmt:v=>v?parseInt(v).toLocaleString("fr")+"€":"—"},
+    {l:"Valeur TM",k:"valeur",num:true,better:"lower",fmt:v=>formatValeur(v)},
     {l:"Matchs",k:"matchs",num:true,better:"higher"},
     {l:"Buts",k:"buts",num:true,better:"higher"},
     {l:"Passes D.",k:"passes",num:true,better:"higher"},
@@ -1591,7 +1616,7 @@ const toDbRow = (p, clubId) => ({
   // Club & Contrat
   club_actuel: p.club || p.clubActuel || p.club_actuel || '',
   ligue: p.ligue || '',
-  valeur: p.valeur || '',
+  valeur: normalizeValeur(p.valeur || ''),
   debut_contrat: p.debutContrat || p.debut_contrat || '',
   fin_contrat: p.finContrat || p.fin_contrat || '',
   salaire: p.salaire || '',
@@ -1824,20 +1849,36 @@ export default function App(){
     if(viewP?.id===id)setViewP(null);
   };
 
-  /* ══ FIX 5 — handleSign : insert + delete + reload ══ */
+  /* ══ FIX 5 — handleSign : insert + delete + reload (ROBUSTE) ══ */
+  const [signError, setSignError] = useState(null);
   const handleSign=async(cible)=>{
-    if(!authData?.profile?.club_id)return;
-    const clubId=authData.profile.club_id;
-    const signed={...cible,categorie:'EFFECTIF',statut:'Sous contrat'};
-    const row = toDbRow(signed, clubId);
+    try {
+      if(!authData?.profile?.club_id){console.error('No club_id');return;}
+      const clubId=authData.profile.club_id;
+      const signed={...cible,categorie:'EFFECTIF',statut:'Sous contrat'};
+      const row = toDbRow(signed, clubId);
 
-    const{data,error}=await supabase.from('players').insert(row).select().single();
-    if(error){console.error('Sign error:',error);return;}
-    await supabase.from('targets').delete().eq('id',cible.id);
-    await loadPlayers();
-    if(viewP?.id===cible.id)setViewP(null);
-    setSignedFlash(cible.nom);
-    setTimeout(()=>setSignedFlash(null),3000);
+      console.log('Signing player:', cible.nom, 'row keys:', Object.keys(row).length);
+      const{data,error}=await supabase.from('players').insert(row).select().single();
+      if(error){
+        console.error('Sign INSERT error:', error.code, error.message);
+        setSignError(`❌ Erreur signature: ${error.message}`);
+        setTimeout(()=>setSignError(null), 6000);
+        return;
+      }
+      console.log('Insert OK, deleting from targets id:', cible.id);
+      const delRes = await supabase.from('targets').delete().eq('id',cible.id);
+      if(delRes.error) console.error('Delete target error:', delRes.error);
+
+      await loadPlayers();
+      if(viewP?.id===cible.id)setViewP(null);
+      setSignedFlash(cible.nom);
+      setTimeout(()=>setSignedFlash(null),3000);
+    } catch(e) {
+      console.error('handleSign CRASH:', e);
+      setSignError(`❌ Erreur: ${e.message}`);
+      setTimeout(()=>setSignError(null), 6000);
+    }
   };
 
   const handleRefuse=async(cible)=>{
@@ -1912,6 +1953,13 @@ export default function App(){
         <div style={{position:'fixed',bottom:24,right:24,zIndex:999,background:'linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.08))',border:'1px solid rgba(34,197,94,.35)',borderRadius:12,padding:'14px 20px',display:'flex',alignItems:'center',gap:12,boxShadow:'0 8px 32px rgba(0,0,0,.4)',animation:'fadeUp .25s ease'}}>
           <span style={{fontSize:22}}>✅</span>
           <div><div style={{fontWeight:700,color:'var(--green)',fontSize:13}}>{signedFlash} — SIGNÉ !</div><div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>Transféré dans l'Effectif · disponible sur le Terrain</div></div>
+        </div>
+      )}
+
+      {signError&&(
+        <div style={{position:'fixed',bottom:24,right:24,zIndex:999,background:'linear-gradient(135deg,rgba(239,68,68,.15),rgba(239,68,68,.08))',border:'1px solid rgba(239,68,68,.35)',borderRadius:12,padding:'14px 20px',display:'flex',alignItems:'center',gap:12,boxShadow:'0 8px 32px rgba(0,0,0,.4)',animation:'fadeUp .25s ease'}}>
+          <span style={{fontSize:22}}>⚠️</span>
+          <div><div style={{fontWeight:700,color:'var(--red)',fontSize:13}}>{signError}</div><div style={{fontSize:11,color:'var(--muted)',marginTop:2}}>Vérifie la console (F12) pour plus de détails</div></div>
         </div>
       )}
 
@@ -2061,7 +2109,7 @@ export default function App(){
                 {viewP.categorie==="CIBLE"&&viewP.statut!=="Signé"&&viewP.statut!=="Refusé"&&(
                   <>
                     <button className="btn btn-sm" style={{background:'rgba(34,197,94,.12)',color:'var(--green)',border:'1px solid rgba(34,197,94,.3)',fontWeight:700}}
-                      onClick={()=>{handleSign(viewP);setViewP(null);}}>✅ Signer → Effectif</button>
+                      onClick={async()=>{setViewP(null);try{await handleSign(viewP);}catch(e){console.error(e);}}}>✅ Signer → Effectif</button>
                     <button className="btn btn-sm" style={{background:'rgba(239,68,68,.1)',color:'var(--red)',border:'1px solid rgba(239,68,68,.2)'}}
                       onClick={()=>handleRefuse(viewP)}>❌ Refusé</button>
                   </>
